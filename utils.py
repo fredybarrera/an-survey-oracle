@@ -15,8 +15,19 @@ import requests
 import traceback
 import json
 import os
+import platform
+import cx_Oracle
 
 script_dir = os.path.dirname(__file__)
+
+# Location oracle client
+LOCATION = const.LOCATION
+# Credenciales
+server_ip = const.SERVER_IP
+server_port = const.SERVER_PORT
+server_service = const.SERVER_SERVICE
+server_username = const.SERVER_USERNAME
+server_password = const.SERVER_PASSWORD
 
 #-------------------------------------------------------------------------------
 # Retorna un token de acceso a los servicios
@@ -32,10 +43,8 @@ def get_token():
 
         return data['token']
     except:
-        print("Failed get_token (%s)" %
-            traceback.format_exc())
-        error_log("Failed get_token (%s)" %
-            traceback.format_exc())
+        print("Failed get_token (%s)" % traceback.format_exc())
+        error_log("Failed get_token (%s)" % traceback.format_exc())
 
 #-------------------------------------------------------------------------------
 # Retorna los headers para los request
@@ -48,6 +57,26 @@ def get_headers():
         'cache-control': "no-cache",
         'postman-token': "11df29d1-17d3-c58c-565f-2ca4092ddf5f"
     }
+
+#-------------------------------------------------------------------------------
+# Retorna una conexión a Oracle
+#-------------------------------------------------------------------------------
+def get_conexion_oracle():
+    try:
+        # print("ARCH:", platform.architecture())
+        # print("FILES AT LOCATION:")
+
+        for name in os.listdir(LOCATION):
+            # print(name)
+            os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
+
+        dsn_tns = cx_Oracle.makedsn(server_ip, server_port, service_name=server_service) 
+        conn = cx_Oracle.connect(user=server_username, password=server_password, dsn=dsn_tns)
+
+        return conn
+    except:
+        print("Failed get_conexion_oracle (%s)" % traceback.format_exc())
+        error_log("Failed get_conexion_oracle (%s)" % traceback.format_exc())
 
 #-------------------------------------------------------------------------------
 # Convert seconds into hours, minutes and seconds

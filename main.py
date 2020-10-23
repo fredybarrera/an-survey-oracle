@@ -19,55 +19,39 @@ import traceback
 import os
 import time
 import json
-import cx_Oracle
 from datetime import datetime, timedelta
-import platform
 
 # Ruta absoluta del script
 script_dir = os.path.dirname(__file__)
-LOCATION = r"C:\oracle\instantclient_19_8"
 
 
 def main():
     """Main function."""
-
-    print("ARCH:", platform.architecture())
-    print("FILES AT LOCATION:")
-
-    for name in os.listdir(LOCATION):
-        print(name)
-        os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
 
     timeStart = time.time()
     utils.log("Proceso iniciado..." + str(datetime.now()))
 
     print("Obteniendo token... ")
     token = utils.get_token()
-
     print('token: ', token)
 
-    function_one()
+    print("Conectando con Oracle... ")
+    conn = utils.get_conexion_oracle()
 
-
-    
-
+    function_one(conn)
 
     end_process(timeStart)
 
 
-def function_one():
+def function_one(conn):
     """Function one."""
-    try:
-        
-        dsn_tns = cx_Oracle.makedsn('192.172.2.85', '1521', service_name='siganpub') 
-        conn = cx_Oracle.connect(user=r'edicion', password='edicion', dsn=dsn_tns)
 
+    try:
         c = conn.cursor()
         c.execute('select * from EDICION.TACAREA')
         for row in c:
             print (row[0], '-', row[1], '-', row[2])
         conn.close()
-
     except:
         print("Failed function_one (%s)" %
               traceback.format_exc())

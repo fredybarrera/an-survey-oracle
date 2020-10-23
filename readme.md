@@ -1,10 +1,10 @@
-# Script xxxxx
+# Script integracion Survey123 - Oracle
 
 Proyecto desarrollado en Python 3.8.0
 
 ## Propósito
 
-Script que .......
+Script que permite la lectura de encuestas de survey123 desde Arcgis Online y escribe los datos en una base de datos Oracle.
 
 ## Instalación
 

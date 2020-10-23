@@ -21,6 +21,7 @@ USERNAME = config('TOKEN_USERNAME')
 PASSWORD = config('TOKEN_PASSWORD')
 REFERER = config('TOKEN_REFERER')
 URL = config('TOKEN_URL')
+
 # **********************************************************************************************
 # Tabla encuestas
 URL_REST_FALLA_MATRICES = config('URL_ENCUESTA_FALLA_MATRICES')
@@ -38,3 +39,14 @@ URL_QUERY_CORTE = URL_REST_FALLA_MATRICES + '/' + TABLE_CORTE + '/query'
 
 # URL_ATTACHMENT_CAMBIOS = URL_REST_FALLA_MATRICES + '/0/queryAttachments'
 # URL_ATTACHMENT_VISITAS = URL_REST_FALLA_MATRICES + '/1/queryAttachments'
+
+# **********************************************************************************************
+# Conexion Oracle
+LOCATION = config('ORACLE_LOCATION')
+SERVER_IP = config('ORACLE_SERVER_IP')
+SERVER_PORT = config('ORACLE_SERVER_PORT')
+SERVER_SERVICE = config('ORACLE_SERVER_SERVICE')
+SERVER_USERNAME = config('ORACLE_SERVER_USERNAME')
+SERVER_PASSWORD = config('ORACLE_SERVER_PASSWORD')
+
+# **********************************************************************************************
