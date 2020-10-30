@@ -36,11 +36,8 @@ def get_token():
     try:
         url = const.URL + "?f=json&username=" + const.USERNAME + "&password=" + \
             const.PASSWORD + "&referer=" + const.REFERER
-
         response = requests.get(url)
-
         data = response.json()
-
         return data['token']
     except:
         print("Failed get_token (%s)" % traceback.format_exc())
@@ -59,24 +56,66 @@ def get_headers():
     }
 
 #-------------------------------------------------------------------------------
-# Retorna una conexión a Oracle
+# Retorna los params para un count
+#-------------------------------------------------------------------------------
+def get_params_count(token):
+    return {
+        'f': 'json',
+        'token': token,
+        'where': '1=1',
+        'outFields': '*',
+        'returnCountOnly': 'true'
+    }
+
+#-------------------------------------------------------------------------------
+# Retorna los params para una query
+#-------------------------------------------------------------------------------
+def get_params_query(token, offset, record_count):
+    return {
+        'f': 'json',
+        'token': token,
+        'where': '1=1',
+        'outFields': '*',
+        'orderByFields': 'OBJECTID',
+        'resultOffset': offset,
+        'resultRecordCount': record_count,
+        'returnGeometry': True
+    }
+
+#-------------------------------------------------------------------------------
+# Retorna un objeto de conexión a Oracle
 #-------------------------------------------------------------------------------
 def get_conexion_oracle():
     try:
         # print("ARCH:", platform.architecture())
         # print("FILES AT LOCATION:")
-
         for name in os.listdir(LOCATION):
             # print(name)
             os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
-
         dsn_tns = cx_Oracle.makedsn(server_ip, server_port, service_name=server_service) 
         conn = cx_Oracle.connect(user=server_username, password=server_password, dsn=dsn_tns)
-
         return conn
     except:
         print("Failed get_conexion_oracle (%s)" % traceback.format_exc())
         error_log("Failed get_conexion_oracle (%s)" % traceback.format_exc())
+
+#-------------------------------------------------------------------------------
+# Convert seconds into hours, minutes and seconds
+#-------------------------------------------------------------------------------
+def insert_data(conn, sql, data):
+    """insert multiple rows"""
+
+    try:
+
+        with conn.cursor() as cursor:
+            # execute the insert statement
+            cursor.executemany(sql, data)
+            # commit work
+            conn.commit()
+
+    except:
+        print("Failed insert_data (%s)" % traceback.format_exc())
+        error_log("insert_data send (%s)" % traceback.format_exc())
 
 #-------------------------------------------------------------------------------
 # Convert seconds into hours, minutes and seconds
@@ -105,7 +144,7 @@ def log(text):
     except:
         print("Failed log (%s)" %
               traceback.format_exc())
-        utils.error_log("Failed send (%s)" %
+        error_log("Failed send (%s)" %
                         traceback.format_exc())
 
 #-------------------------------------------------------------------------------

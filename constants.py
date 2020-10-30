@@ -50,3 +50,9 @@ SERVER_USERNAME = config('ORACLE_SERVER_USERNAME')
 SERVER_PASSWORD = config('ORACLE_SERVER_PASSWORD')
 
 # **********************************************************************************************
+# Tablas oracle
+FALLA_MATRIZ = config('ORALE_TABLE_FALLA_MATRIZ')
+ESTANQUE = config('ORALE_TABLE_ESTANQUES')
+VALVULAS_BUENAS = config('ORALE_TABLE_VALVULAS_BUENAS')
+VALVULAS_MALAS = config('ORALE_TABLE_VALVULAS_MALAS')
+CORTE = config('ORALE_TABLE_CORTES')
