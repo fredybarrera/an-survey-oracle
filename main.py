@@ -10,6 +10,8 @@
 # Licence:      <your licence>
 #-------------------------------------------------------------------------------
 
+import arcinfo
+import arcpy
 import utils
 import constants as const
 import requests
@@ -19,8 +21,16 @@ import traceback
 import os
 import time
 import json
+from arcgis.gis import GIS
+from arcgis.features import FeatureLayer
 from datetime import datetime, timedelta
 
+# Workspace
+arcpy.env.workspace = const.WORKSPACE
+# Sobreescribo la misma capa de salida
+arcpy.env.overwriteOutput = True
+# Set the preserveGlobalIds environment to True
+arcpy.env.preserveGlobalIds = True
 # Ruta absoluta del script
 script_dir = os.path.dirname(__file__)
 
@@ -28,139 +38,57 @@ script_dir = os.path.dirname(__file__)
 def main():
     """Main function."""
 
-    timeStart = time.time()
-    utils.log("Proceso iniciado..." + str(datetime.now()))
-
-    print("Obteniendo token... ")
-    token = utils.get_token()
-    print('token: ', token)
-
-    print("Conectando con Oracle... ")
-    conn = utils.get_conexion_oracle()
-
-    test_conexion(conn)
-
-    # process(token, conn)
-
-    # end_process(timeStart)
+    try:
+        timeStart = time.time()
+        utils.log("Proceso iniciado..." + str(datetime.now()))
 
 
+        gis = GIS("https://www.arcgis.com", "Survey_ESRICHILE", "Aguas2020")
+
+        print('gis: ', gis)
+        print("Logged in as: " + gis.properties.user.username)
+
+        encuestas = gis.content.get('c67f67653e274e33a7841d6b6a24567c')
+        print('encuestas: ', encuestas)
+
+        for lyr in encuestas.layers:
+            print('lyr.url: ', lyr.url)
+            feature_layer = FeatureLayer(lyr.url)
+            print('FeatureLayer: ', feature_layer)
+            # for f in feature_layer.properties.fields:
+            #     print(f['name'])
+
+            query = feature_layer.query()
+            print('len: ', len(query.features))
+
+            if len(query.features) > 0:
+                for feature in query.features:
+                    geometry = feature.geometry
+                    attributes = feature.attributes
+                    print('feature', feature)
+                    print('geometry: ', geometry)
+                    print('attributes: ', attributes)
+
+        
+
+
+        end_process(timeStart)
+
+    except:
+        print("Failed main (%s)" % traceback.format_exc())
+        utils.error_log("Failed main (%s)" % traceback.format_exc())
 
 
 def process(token, conn):
     """Inicio del proceso de obtención de la data y la carga en Oracle."""
 
     try:
-        # Obtengo la cantidad total de registros de la capa.
-        response = requests.get(
-            const.URL_QUERY_FALLA_MATRIZ, params=utils.get_params_count(token), headers=utils.get_headers())
-        response_json = json.loads(response.text)
-        cantidad_registros = response_json['count']
-        print('Se descargarán un total de {} registros'.format(cantidad_registros))
-        utils.log('Se descargarán un total de {} registros'.format(cantidad_registros))
-
-        record_count = 2000
-        print('Consultando lotes de {} registros'.format(record_count))
-        utils.log('Consultando lotes de {} registros'.format(record_count))
-
-        if cantidad_registros > 0:
-            # Divido el total de registros de la capa por 2000
-            cantidad_paginas = get_cantidad_por_pagina(cantidad_registros, record_count)
-            offset = 0
-            print('Cantidad total de lotes: ', cantidad_paginas)
-            utils.log('Cantidad total de lotes {}'.format(cantidad_paginas))
-            for lote in range(0, cantidad_paginas):
-                print('Descargando lote {0}: '.format(lote + 1))
-                utils.log('Descargando lote {0}: '.format(lote + 1))
-                response = requests.get(
-                    const.URL_QUERY_FALLA_MATRIZ, params=utils.get_params_query(token, offset, record_count), headers=utils.get_headers())
-                response = json.loads(response.text)
-                offset += record_count
-                # Proceso los datos obtenidos de las fallas de matrices, obtengo:
-                # - Attachments de las fallas
-                # - Estanques
-                # - Valvulas buenas
-                # - Valvulas malas
-                # - Cortes
-                if len(response['features']) > 0:
-                    process_data(response, token, conn)
-
+        
+        return True
 
     except:
         print("Failed process (%s)" % traceback.format_exc())
         utils.error_log("Failed process (%s)" % traceback.format_exc())
-
-
-def process_data(response, token, conn):
-    """
-    Guardo las fallas de las matrices.
-    Por cada falla, obtengo los attachments, estanques, valvulas buenas y malas y los cortes.
-    """
-
-    try:
-        fields = []
-        data = []
-        values = []
-        str_values = ''
-        for field in response['fields']:
-            fields.append(field['name'])
-
-        str_values = ':' + ',:'.join(fields)
-        
-        # print('str_values: ', str_values)
-
-        for feature in response['features']:
-            # print('feature[attributes]: ', feature['attributes'])
-            values = []
-            for key, val in feature['attributes'].items():
-                values.append(val)
-            data.append(tuple(values))
-        
-
-        table = const.FALLA_MATRIZ
-        
-        sql = ('insert into {0} {1} values ({2})').format(table, tuple(fields), str_values)
-
-        print('sql: ', sql)
-        print('data: ', data)
-
-        utils.insert_data(conn, sql, data)
-
-
-    except:
-        print("Failed process_data (%s)" % traceback.format_exc())
-        utils.error_log("Failed process_data (%s)" % traceback.format_exc())
-
-
-def get_cantidad_por_pagina(cantidad, datos_pagina):
-    """Permite obtener la cantidad de registros por página."""
-
-    try:
-        page = divmod(cantidad, datos_pagina)
-        cantidad_paginas = page[0]
-        if page[0] == 0:
-            cantidad_paginas = 1
-        if page[1] != 0:
-            cantidad_paginas = cantidad_paginas + 1
-        return cantidad_paginas
-
-    except:
-        print("Failed get_cantidad_por_pagina (%s)" % traceback.format_exc())
-        utils.error_log("Failed get_cantidad_por_pagina (%s)" % traceback.format_exc())
-
-
-def test_conexion(conn):
-    """Function one."""
-
-    try:
-        c = conn.cursor()
-        c.execute('select * from CORTE')
-        for row in c:
-            print (row[0], '-', row[1], '-', row[2])
-        conn.close()
-    except:
-        print("Failed test_conexion (%s)" % traceback.format_exc())
-        utils.error_log("Failed test_conexion (%s)" % traceback.format_exc())
 
 
 def end_process(timeStart):
