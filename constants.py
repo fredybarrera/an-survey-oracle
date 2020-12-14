@@ -15,6 +15,10 @@ from decouple import config
 # Workspace
 WORKSPACE = config('FOLDER_WORKSPACE')
 
+DATASET = config('WORKSPACE_DATASET')
+TABLE_FALLA_MATRIZ = config('TABLE_FALLA_MATRIZ')
+TABLE_FALLA_MATRIZ_ATT = config('TABLE_FALLA_MATRIZ_ATT')
+
 # **********************************************************************************************
 # Credenciales para obtener token
 USERNAME = config('TOKEN_USERNAME')

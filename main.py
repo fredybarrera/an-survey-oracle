@@ -34,6 +34,13 @@ arcpy.env.preserveGlobalIds = True
 # Ruta absoluta del script
 script_dir = os.path.dirname(__file__)
 
+# Tablas
+dataset = const.DATASET
+falla_matriz = const.TABLE_FALLA_MATRIZ
+falla_matriz_att = const.TABLE_FALLA_MATRIZ_ATT
+
+
+
 
 def main():
     """Main function."""
@@ -51,26 +58,66 @@ def main():
         encuestas = gis.content.get('c67f67653e274e33a7841d6b6a24567c')
         print('encuestas: ', encuestas)
 
+        feature_layer = FeatureLayer("https://services7.arcgis.com/U3HcuJWWcwbEqVCd/arcgis/rest/services/service_4a5216c4b49c46e88b445be421ce3881/FeatureServer/0")
+
+        query = feature_layer.query()
+
+        if len(query.features) > 0:
+            for feature in query.features:
+                geometry = feature.geometry
+                attributes = feature.attributes
+                # print('attributes.objectid: ', attributes['objectid'])
+                # attachments = feature_layer.attachments.get_list(oid=attributes['objectid'])
+                # print('attachments: ', attachments)
+                # print('len attachments: ', len(attachments))
+
+        
+        # featureclasses = arcpy.ListFeatureClasses()
+
+        # for fc in featureclasses:
+        #     print('fc: ', fc)
+
+
+
+        # exit()
+
+
+
+
+
+
         for lyr in encuestas.layers:
             print('lyr.url: ', lyr.url)
             feature_layer = FeatureLayer(lyr.url)
             print('FeatureLayer: ', feature_layer)
+
             # for f in feature_layer.properties.fields:
-            #     print(f['name'])
+                # print(f['name'])
 
-            query = feature_layer.query()
-            print('len: ', len(query.features))
+            # query = feature_layer.query()
+            # print('len: ', len(query.features))
 
-            if len(query.features) > 0:
-                for feature in query.features:
-                    geometry = feature.geometry
-                    attributes = feature.attributes
-                    print('feature', feature)
-                    print('geometry: ', geometry)
-                    print('attributes: ', attributes)
+            # if len(query.features) > 0:
+            #     for feature in query.features:
+            #         geometry = feature.geometry
+            #         attributes = feature.attributes
+            #         print('feature', feature)
+            #         print('geometry: ', geometry)
+            #         print('attributes: ', attributes)
 
         
 
+
+        fc = os.path.join(arcpy.env.workspace, dataset, falla_matriz_att)
+        print('fc: ', fc)
+
+        field_names = [f.name for f in arcpy.ListFields(fc)]
+        print('field_names: ', field_names)
+
+
+        with arcpy.da.SearchCursor(fc, ["*"]) as cursor:
+            for row in cursor:
+                print('row: ', row)
 
         end_process(timeStart)
 
