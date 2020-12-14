@@ -51,23 +51,41 @@ def main():
         encuestas = gis.content.get('c67f67653e274e33a7841d6b6a24567c')
         print('encuestas: ', encuestas)
 
+
+        fc = os.path.join(arcpy.env.workspace, dataset, capa_incendios)
+
+
         for lyr in encuestas.layers:
             print('lyr.url: ', lyr.url)
             feature_layer = FeatureLayer(lyr.url)
             print('FeatureLayer: ', feature_layer)
-            # for f in feature_layer.properties.fields:
-            #     print(f['name'])
+            name = feature_layer.properties.name
+            print('FeatureLayer name: ', name)
+            
 
             query = feature_layer.query()
             print('len: ', len(query.features))
+
+            fields = []
+            if(name == 'Falla_Matriz'):
+                for f in feature_layer.properties.fields:
+                    fields.append(f['name'])
+
+                
+                with arcpy.da.InsertCursor(fc, fields) as insert_cursor:
+
+
+            
+            print('fields: ', fields)
+
 
             if len(query.features) > 0:
                 for feature in query.features:
                     geometry = feature.geometry
                     attributes = feature.attributes
-                    print('feature', feature)
-                    print('geometry: ', geometry)
-                    print('attributes: ', attributes)
+                    # print('feature', feature)
+                    # print('geometry: ', geometry)
+                    # print('attributes: ', attributes)
 
         
 
